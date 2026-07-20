@@ -56,8 +56,8 @@ async function generateInterviewReport({ resume, selfDescription, jobDescription
         }
     });
 
-    const report = interviewReportSchema.parse(JSON.parse(response.text));
-    console.log(JSON.stringify(report, null, 2));
+    const report = JSON.parse(response.text);//interviewReportSchema.parse(JSON.parse(response.text))
+    // console.log(JSON.parse(report, null, 2));
     return report;
 
 }
