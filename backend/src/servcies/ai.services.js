@@ -21,15 +21,16 @@ const interviewReportSchema = z.object({
         intention: z.string().describe('The intention of interview behind asking this question'),
         answer: z.string().describe('How to answer this question, what points to cover and what approach to take etc.')
     })).describe('Behavioural questions for software enginerr'),
-    skillGap: z.array(z.object({
+    skillGaps: z.array(z.object({
         skill: z.string().describe('The skill gap between the candidate and the job description'),
-        severity: z.enum(['High', 'Medium', 'Low']).describe('The severity of the skill gap'),
+        severity: z.enum(['high', 'medium', 'low']).describe('The severity of the skill gap'),
     })).describe('Skill gap between the candidate and the job description'),
     preparationPlan: z.array(z.object({
         day: z.number().describe('The day number in the preparation plan, starting from 1'),
         focus: z.string().describe('The main focus of day in prep plan'),
         tasks: z.array(z.string().describe('The list of tasks to be performed on the day'))
-    })).describe('Preparation plan for the candidate')
+    })).describe('Preparation plan for the candidate'),
+    title: z.string().describe('The title of the job for which interview report is generated'),
 
 })
 
@@ -56,8 +57,7 @@ async function generateInterviewReport({ resume, selfDescription, jobDescription
         }
     });
 
-    const report = JSON.parse(response.text);//interviewReportSchema.parse(JSON.parse(response.text))
-    // console.log(JSON.parse(report, null, 2));
+    const report = interviewReportSchema.parse(JSON.parse(response.text))
     return report;
 
 }
