@@ -45,4 +45,15 @@ export const getAllInterviewReports = async () => {
     return res.data;
 };
 
+/**
+ * @description Generates a resume PDF for the given interview report ID.
+ * Returns the generated PDF as a blob.
+ */
+export const generateResumePdf = async ({interviewReportId}) => {
+    const res = await api.post(`/api/interview/resume/pdf/${interviewReportId}` , null , {
+        responseType: 'blob'
+    });
+    return res.data;
+}
+
 

@@ -1,17 +1,19 @@
-import {PDFParse} from "pdf-parse";
-import generateInterviewReport from "../servcies/ai.services.js";
+import { PDFParse } from "pdf-parse";
+import aiServices from "../servcies/ai.services.js";
 import interviewReportModel from "../models/interviewReport.model.js";
+
+const { generateInterviewReport, generateResumePdf } = aiServices;
 
 /**
  * @description Generates a new interview report based on the user's self description,
  * resume PDF, and job description. 
  */
 
-async function generateInterviewReportController(req,res){
+async function generateInterviewReportController(req, res) {
 
 
-    const resumeContent =  await (new PDFParse(Uint8Array.from(req.file.buffer))).getText();
-    const {selfDescription, jobDescription} = req.body;
+    const resumeContent = await (new PDFParse(Uint8Array.from(req.file.buffer))).getText();
+    const { selfDescription, jobDescription } = req.body;
 
     const interviewReportByAi = await generateInterviewReport({
         resume: resumeContent.text,
@@ -38,10 +40,10 @@ async function generateInterviewReportController(req,res){
  * @description Generates a JSDoc-style comment for documenting code in JSON format,
  * intended for describing the purpose and behavior of functions, classes, or files.
  */
-async function getInterviewReportByIdController(req,res) {
+async function getInterviewReportByIdController(req, res) {
     const { interviewId } = req.params;
     const interviewReport = await interviewReportModel.findOne({
-        _id:interviewId,
+        _id: interviewId,
         user: req.user._id
     })
 
@@ -61,10 +63,10 @@ async function getInterviewReportByIdController(req,res) {
  * Designed to interface with the interviewReportModel and provide responses for API endpoints.
  */
 
-async function getAllInterviewReportsController(req,res) {
-    const interviewReports = await interviewReportModel.find({user: req.user._id})
-    .sort({createdAt: -1})
-    .select('-resume -selfDescription -jobDescription -__v -technicalQuestions -behavioralQuestions -skillGaps -preparationPlan')
+async function getAllInterviewReportsController(req, res) {
+    const interviewReports = await interviewReportModel.find({ user: req.user._id })
+        .sort({ createdAt: -1 })
+        .select('-resume -selfDescription -jobDescription -__v -technicalQuestions -behavioralQuestions -skillGaps -preparationPlan')
 
     return res.status(200).json({
         message: "Interview reports fetched successfully",
@@ -73,4 +75,32 @@ async function getAllInterviewReportsController(req,res) {
 
 }
 
-export default {generateInterviewReportController, getInterviewReportByIdController , getAllInterviewReportsController }
+/**
+ * @description Generates a resume in PDF format based on the user's self description,
+ * resume PDF, and job description. 
+ */
+async function generateResumePdfController(req, res) {
+    const { interviewReportId } = req.params;
+
+    const interviewReport = await interviewReportModel.findById(interviewReportId);
+
+    if (!interviewReport) {
+        return res.status(404).json({
+            message: "Interview report not found"
+        });
+    }
+
+    const { resume, selfDescription, jobDescription } = interviewReport;
+
+    const pdfBuffer = await generateResumePdf({ resume, selfDescription, jobDescription });
+
+    res.set({
+        'Content-Type': 'application/pdf',
+        'Content-Disposition': `attachment; filename="resume_${interviewReportId}.pdf"`
+    })
+
+    res.send(pdfBuffer);
+
+}
+
+export default { generateInterviewReportController, getInterviewReportByIdController, getAllInterviewReportsController, generateResumePdfController }
